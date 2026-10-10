@@ -22,10 +22,42 @@ graph TB
 
 ## 1. Cloudflare R2 (once)
 
-1. **Bucket**: Cloudflare dashboard → R2 → Create bucket (e.g. `mailboxes`).
-2. **Public access**: bucket → Settings → Public access → enable the **R2.dev subdomain** to start (rate-limited), or connect a **custom domain** (needs a domain on Cloudflare; use it for real traffic).
-3. **API token**: R2 → Manage API tokens → Create token with **Object Read & Write** on that bucket.
-4. **Credentials**: run `mbv setup`. It asks for the account ID, key, secret, bucket and public URL, checks them, sets the bucket's CORS policy, tests a public range read, and writes `.env` (mode 600). Or copy [`.env.example`](../.env.example) to `.env` by hand.
+1. **Bucket**: Cloudflare dashboard → R2 Object Storage → Create bucket (e.g. `mailboxes`; defaults are fine).
+2. **Public access**: bucket → Settings → Public Development URL → Enable (type `allow`). That gives a rate-limited `https://pub-….r2.dev` URL, fine to start; for real traffic connect a **custom domain** under Custom Domains (the domain must be on Cloudflare).
+3. **CORS**: bucket → Settings → CORS Policy → Add, and paste:
+
+   ```json
+   [
+     {
+       "AllowedOrigins": [
+         "*"
+       ],
+       "AllowedMethods": [
+         "GET",
+         "HEAD"
+       ],
+       "AllowedHeaders": [
+         "Range",
+         "Content-Type",
+         "If-None-Match",
+         "If-Modified-Since"
+       ],
+       "ExposeHeaders": [
+         "Content-Range",
+         "Content-Length",
+         "Accept-Ranges",
+         "ETag",
+         "Content-Type"
+       ],
+       "MaxAgeSeconds": 86400
+     }
+   ]
+   ```
+
+4. **API token**: R2 Object Storage → Manage API Tokens → Create Account API token → **Object Read & Write**, applied to that bucket only. Copy the **Access Key ID** and **Secret Access Key** (shown once).
+5. **Credentials**: run `mbv setup`. It asks for the account ID, key, secret, bucket and public URL, checks them, tests a public range read, and writes `.env` (mode 600). Or copy [`.env.example`](../.env.example) to `.env` by hand.
+
+A bucket-scoped token can't change bucket settings, which is why CORS is set in the dashboard. With an Admin token, `mbv setup` and `mbv publish` set it for you.
 
 ## 2. Upload a mailbox
 
@@ -35,7 +67,7 @@ mbv publish county-2026-05      # or: mbv publish --all
 
 | Step | What happens |
 |---|---|
-| **CORS** | GET/HEAD from any origin, `Range` allowed, `Content-Range`/`Content-Length`/`Accept-Ranges`/`ETag` exposed |
+| **CORS** | Applied when the token allows it; otherwise the policy to paste is printed |
 | **Upload** | Only files the bucket doesn't already have (names are content hashes) |
 | **Order** | Tables and attachments first, `manifest.json` last, so readers never see a half-uploaded mailbox |
 | **Attachments** | Passive types (images, PDF, audio, video, plain text) inline; HTML, SVG, XML and scripts as text or downloads |
@@ -49,9 +81,9 @@ mbv publish county-2026-05      # or: mbv publish --all
 ### Vercel
 
 1. Push your clone to GitHub.
-2. Vercel → Add New → Project → import it. [`vercel.json`](../vercel.json) sets the build; no framework preset needed.
-3. Add the environment variable **`VITE_DATA_URL`** = the bucket's public URL.
-4. Deploy. `/` lists the mailboxes; each lives at `/<slug>`.
+2. Vercel → Add New → Project → import it. Leave Root Directory at `./` and set **Application Preset** to **Other**: Vercel detects the viewer and the Python package as separate apps, but [`vercel.json`](../vercel.json) builds the viewer for you. Ignore the "possible configuration mismatch" note.
+3. Under Environment Variables add **`VITE_DATA_URL`** = the bucket's public URL.
+4. Deploy. `/` lists the mailboxes; each lives at `/<slug>` (for example https://mailbox-viewer.vercel.app/demo).
 
 `vercel.json` sends `X-Robots-Tag: noindex`; remove it if you want search engines to list the site.
 
@@ -60,7 +92,7 @@ mbv publish county-2026-05      # or: mbv publish --all
 | Host | Build | Output | Notes |
 |---|---|---|---|
 | **Netlify, Cloudflare Pages** | `npm ci --prefix viewer && npm run build --prefix viewer` | `viewer/dist` | Rewrite every path to `/index.html` (SPA) |
-| **GitHub Pages** | as above, with `VITE_BASE=/<repo>/` | `viewer/dist` | Copy `index.html` to `404.html`; see the [demo workflow](../.github/workflows/demo.yml) |
+| **GitHub Pages** | as above, with `VITE_BASE=/<repo>/` | `viewer/dist` | Copy `index.html` to `404.html` so app routes load |
 | **Your own server** | as above | `viewer/dist` | Must answer range requests and fall back to `index.html` for unknown paths (`mbv preview` is a small example) |
 
 Build-time settings:

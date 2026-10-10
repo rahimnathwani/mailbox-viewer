@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import quote
 
+from . import __version__
 from .datasets import INDEX, merge, public
 from .serve import safe_headers
 
@@ -28,6 +29,16 @@ CORS = {
 }
 
 mimetypes.add_type("application/vnd.apache.parquet", ".parquet")
+
+# Cloudflare rejects Python's default "Python-urllib" user agent on r2.dev
+USER_AGENT = f"mailbox-viewer/{__version__} (+https://github.com/rahimnathwani/mailbox-viewer)"
+
+
+def cors_help() -> str:
+    """Instructions for setting CORS by hand (object-scoped R2 tokens can't change bucket settings)."""
+    return "R2 dashboard → bucket → Settings → CORS Policy → Add, and paste:\n" + json.dumps(
+        CORS["CORSRules"], indent=2
+    )
 
 
 def _env(name: str, required: bool = True) -> str:
@@ -82,7 +93,10 @@ def publish(dist: Path, slugs: list[str], prune: bool = False, dry_run: bool = F
             s3.put_bucket_cors(Bucket=bucket, CORSConfiguration=CORS)
             print(f"CORS set on bucket {bucket}", file=sys.stderr)
         except Exception as e:
-            print(f"  ! could not set CORS ({e}); set it in the R2 dashboard (README → Publish)", file=sys.stderr)
+            print(
+                f"  ! could not set the bucket's CORS policy ({e}).\n  If it isn't set yet: {cors_help()}",
+                file=sys.stderr,
+            )
 
     try:
         remote_index = json.loads(s3.get_object(Bucket=bucket, Key=INDEX)["Body"].read())
@@ -164,7 +178,9 @@ def check(public_url: str, slug: str | None) -> bool:
     if slug:
         targets.append(f"{public_url}/{slug}/manifest.json")
     for url in targets:
-        req = urllib.request.Request(url, headers={"Range": "bytes=0-99", "Origin": "https://example.com"})
+        req = urllib.request.Request(
+            url, headers={"Range": "bytes=0-99", "Origin": "https://example.com", "User-Agent": USER_AGENT}
+        )
         try:
             with urllib.request.urlopen(req, timeout=20) as r:
                 h = {k.lower(): v for k, v in r.headers.items()}
@@ -218,7 +234,10 @@ def setup(env_path: Path) -> None:
 
     current = {k: v or "" for k, v in dotenv_values(env_path).items()} if env_path.exists() else {}
     print("Cloudflare R2 setup. Values are saved to .env (never committed). Enter keeps the current value.\n")
-    print("Dashboard → R2 → Create bucket; then Manage API tokens → Create token (Object Read & Write).\n")
+    print(
+        "Dashboard → R2 Object Storage → Create bucket; then Manage API Tokens → Create Account API token\n"
+        "(Object Read & Write, applied to that bucket only).\n"
+    )
 
     def ask(key: str, label: str, secret: bool = False, default: str = "") -> str:
         cur = current.get(key) or default
@@ -246,11 +265,9 @@ def setup(env_path: Path) -> None:
         s3.put_bucket_cors(Bucket=vals["R2_BUCKET"], CORSConfiguration=CORS)
         print("ok")
     except Exception as e:
-        print(f"failed ({e}): set it by hand in the bucket settings (README → Publish)")
+        print(f"not allowed with this token ({type(e).__name__}); set it once by hand:\n{cors_help()}")
 
-    print(
-        "\nPublic access: bucket → Settings → Public access → enable the R2.dev subdomain, or connect a custom domain."
-    )
+    print("\nPublic access: bucket → Settings → Public Development URL → Enable, or connect a custom domain.")
     vals["R2_PUBLIC_URL"] = ask("R2_PUBLIC_URL", "Public bucket URL (https://pub-….r2.dev or your domain)").rstrip("/")
     _write_env(env_path, vals)
     print(f"saved {env_path}")
@@ -258,7 +275,9 @@ def setup(env_path: Path) -> None:
         key = ".mbv-check.txt"
         s3.put_object(Bucket=vals["R2_BUCKET"], Key=key, Body=b"mailbox viewer check\n", ContentType="text/plain")
         url = f"{vals['R2_PUBLIC_URL']}/{key}"
-        req = urllib.request.Request(url, headers={"Range": "bytes=0-6", "Origin": "https://example.com"})
+        req = urllib.request.Request(
+            url, headers={"Range": "bytes=0-6", "Origin": "https://example.com", "User-Agent": USER_AGENT}
+        )
         try:
             with urllib.request.urlopen(req, timeout=20) as r:
                 h = {k.lower(): v for k, v in r.headers.items()}

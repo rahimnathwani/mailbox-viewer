@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install test test-python test-e2e lint format dev preview demo docs docs-check build clean
+.PHONY: help install test test-python test-e2e lint format dev preview demo publish-demo docs docs-check build clean
 
 help:  ## Show this help
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -34,6 +34,10 @@ dev:  ## Viewer with hot reload (http://localhost:5173), data from ./dist
 demo:  ## Build the fictional demo mailbox and preview it
 	uv run mbv build tests/fixtures/demo --slug demo --title "Parks Department (demo)"
 	uv run mbv preview
+
+publish-demo:  ## Rebuild the demo mailbox and publish it to the bucket in .env
+	uv run mbv build tests/fixtures/demo --slug demo --title "Parks Department (demo)" --description "A fictional mailbox for trying Mailbox Viewer"
+	uv run mbv publish demo --prune
 
 preview:  ## Serve ./dist with the viewer
 	uv run mbv preview

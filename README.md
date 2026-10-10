@@ -1,14 +1,14 @@
 # Mailbox Viewer
 
 [![CI](https://github.com/rahimnathwani/mailbox-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/rahimnathwani/mailbox-viewer/actions/workflows/ci.yml)
-[![Demo](https://img.shields.io/badge/demo-live-0b57d0)](https://rahimnathwani.github.io/mailbox-viewer/demo)
+[![Demo](https://img.shields.io/badge/demo-live-0b57d0)](https://mailbox-viewer.vercel.app/demo)
 [![License](https://img.shields.io/github/license/rahimnathwani/mailbox-viewer)](LICENSE)
 
 Turn an mbox or PST file into a static website that looks and works like Gmail: conversations, labels, attachments, Gmail's search operators and in-browser semantic search. There is no server. The build writes [Parquet files](docs/format.md) you can host on Cloudflare R2 or any static file host, and the viewer is a static site that queries them from the browser with DuckDB-WASM.
 
 It was built for public-records and FOIA responses, which tend to arrive as a PST or mbox that most people can't open, let alone search or share.
 
-**[Try the live demo](https://rahimnathwani.github.io/mailbox-viewer/demo)** (a fictional mailbox) · **[Documentation](docs/README.md)**
+**[Try the live demo](https://mailbox-viewer.vercel.app/demo)** (a fictional mailbox, served exactly as the docs describe: viewer on Vercel, data on Cloudflare R2) · **[Documentation](docs/README.md)**
 
 ![The inbox of the demo mailbox](docs/inbox.png)
 

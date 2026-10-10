@@ -2,6 +2,18 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [semantic versioning](https://semver.org). The [dataset format](docs/format.md) has its own version number.
 
+## [Unreleased]
+
+### Changed
+
+- The live demo runs the documented setup: viewer on Vercel, data on Cloudflare R2 (it was on GitHub Pages). `make publish-demo` updates its data.
+- The publishing guide follows the current Cloudflare dashboard, including setting CORS by hand when the API token is limited to one bucket.
+
+### Fixed
+
+- `mbv check` and `mbv setup` reported public `r2.dev` URLs as broken: Cloudflare rejects Python's default user agent.
+- When the token can't set CORS, `mbv publish` and `mbv setup` print the policy to paste instead of a bare error.
+
 ## [0.1.0] - 2026-10-09
 
 First release.
@@ -24,4 +36,5 @@ First release.
 - CSV export of any list or search.
 - Reads only the byte ranges it needs through DuckDB-WASM; optional fully self-hosted build (`VITE_SELF_HOST=1`).
 
+[Unreleased]: https://github.com/rahimnathwani/mailbox-viewer/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/rahimnathwani/mailbox-viewer/releases/tag/v0.1.0
