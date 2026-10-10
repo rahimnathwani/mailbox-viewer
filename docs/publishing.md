@@ -67,12 +67,12 @@ mbv publish county-2026-05      # or: mbv publish --all
 
 | Step | What happens |
 |---|---|
-| **CORS** | Applied when the token allows it; otherwise the policy to paste is printed |
+| **CORS** | Applied when the token allows it; if it can't, and the public check finds CORS missing, the policy to paste is printed |
 | **Upload** | Only files the bucket doesn't already have (names are content hashes) |
 | **Order** | Tables and attachments first, `manifest.json` last, so readers never see a half-uploaded mailbox |
 | **Attachments** | Passive types (images, PDF, audio, video, plain text) inline; HTML, SVG, XML and scripts as text or downloads |
 | **List** | `datasets.json` at the bucket root is updated (unlisted mailboxes left out) |
-| **Check** | Reads the manifest through the public URL with a `Range` header from another origin |
+| **Check** | Reads each manifest through the public URL with a `Range` header from another origin |
 
 `--prune` deletes files from older builds; `--dry-run` shows what would change. `mbv check` repeats the public-URL test at any time.
 

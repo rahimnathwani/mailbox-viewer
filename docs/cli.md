@@ -108,7 +108,7 @@ Options:
 ## mbv check
 
 ```
-Usage: mbv check [OPTIONS] [SLUG]
+Usage: mbv check [OPTIONS] [SLUGS]...
 
   Check that the public bucket URL serves range requests with CORS headers.
 

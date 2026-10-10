@@ -88,15 +88,14 @@ def publish(dist: Path, slugs: list[str], prune: bool = False, dry_run: bool = F
     local_index = json.loads((dist / INDEX).read_text()) if (dist / INDEX).exists() else {"datasets": []}
     hidden = {d["slug"]: d.get("hidden", False) for d in local_index["datasets"]}
 
+    cors_denied = False
     if set_cors and not dry_run:
         try:
             s3.put_bucket_cors(Bucket=bucket, CORSConfiguration=CORS)
             print(f"CORS set on bucket {bucket}", file=sys.stderr)
-        except Exception as e:
-            print(
-                f"  ! could not set the bucket's CORS policy ({e}).\n  If it isn't set yet: {cors_help()}",
-                file=sys.stderr,
-            )
+        except Exception:
+            # bucket-scoped tokens can't; the public check below shows whether it's already set
+            cors_denied = True
 
     try:
         remote_index = json.loads(s3.get_object(Bucket=bucket, Key=INDEX)["Body"].read())
@@ -164,19 +163,20 @@ def publish(dist: Path, slugs: list[str], prune: bool = False, dry_run: bool = F
     if public_url:
         for slug in slugs:
             print(f"  {public_url}/{slug}/manifest.json", file=sys.stderr)
-        check(public_url, slugs[0] if slugs else None)
+        if not check(public_url, slugs) and cors_denied:
+            print(f"\nThis token can't set the bucket's CORS policy. {cors_help()}", file=sys.stderr)
+    elif cors_denied:
+        print(f"Couldn't set the bucket's CORS policy with this token. {cors_help()}", file=sys.stderr)
     else:
         print("R2_PUBLIC_URL not set: skipping the public read check", file=sys.stderr)
 
 
-def check(public_url: str, slug: str | None) -> bool:
+def check(public_url: str, slugs: list[str] | tuple[str, ...] = ()) -> bool:
     """Read back like the browser does: CORS preflight-free GET with a Range header from another origin."""
     import urllib.request
 
     ok = True
-    targets = [f"{public_url}/{INDEX}"]
-    if slug:
-        targets.append(f"{public_url}/{slug}/manifest.json")
+    targets = [f"{public_url}/{INDEX}"] + [f"{public_url}/{slug}/manifest.json" for slug in slugs]
     for url in targets:
         req = urllib.request.Request(
             url, headers={"Range": "bytes=0-99", "Origin": "https://example.com", "User-Agent": USER_AGENT}

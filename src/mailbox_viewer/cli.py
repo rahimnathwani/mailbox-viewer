@@ -121,15 +121,15 @@ def publish(obj, slugs, all_, prune, dry_run, no_cors):
 
 
 @cli.command()
-@click.argument("slug", required=False)
-def check(slug):
+@click.argument("slugs", nargs=-1)
+def check(slugs):
     """Check that the public bucket URL serves range requests with CORS headers."""
     from .publish import check as run_check
 
     url = os.environ.get("R2_PUBLIC_URL", "").rstrip("/")
     if not url:
         raise click.UsageError("R2_PUBLIC_URL is not set (run `mbv setup`)")
-    sys.exit(0 if run_check(url, slug) else 1)
+    sys.exit(0 if run_check(url, slugs) else 1)
 
 
 @cli.command("list")
