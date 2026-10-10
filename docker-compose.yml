@@ -1,0 +1,20 @@
+# docker compose run --rm mbv build input/mailbox.pst --slug my-mailbox
+# docker compose up                      → http://localhost:8000
+# docker compose run --rm mbv publish my-mailbox
+services:
+  mbv:
+    build: .
+    image: mailbox-viewer
+    ports:
+      - "8000:8000"
+    working_dir: /work
+    volumes:
+      - ./input:/work/input
+      - ./dist:/work/dist
+      - mbv-cache:/cache  # PST conversions, embedding model and vectors
+    env_file:
+      - path: .env
+        required: false
+
+volumes:
+  mbv-cache:

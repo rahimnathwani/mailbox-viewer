@@ -1,0 +1,28 @@
+name: Bug report
+description: Something doesn't work as expected
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please don't attach real mailboxes or screenshots of real mail. An invented `.eml` that reproduces the problem is ideal.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The command you ran and its full output, or what the viewer showed.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+  - type: input
+    id: input
+    attributes:
+      label: Input
+      description: PST, mbox, Maildir or eml, and the program that produced it (Outlook export, Gmail Takeout, readpst, ...)
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `mbv --version`, and your browser if it's a viewer problem

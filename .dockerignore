@@ -1,0 +1,9 @@
+.env
+.git
+input/
+dist/
+.cache/
+.venv/
+**/node_modules/
+viewer/dist/
+viewer/test-results/
