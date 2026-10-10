@@ -38,7 +38,7 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/rahimnathwani/mailbox-viewer"
 Documentation = "https://github.com/rahimnathwani/mailbox-viewer/tree/main/docs"
-Demo = "https://mailbox-viewer.vercel.app/demo"
+Demo = "https://mail.ocaho.com/demo"
 Changelog = "https://github.com/rahimnathwani/mailbox-viewer/blob/main/CHANGELOG.md"
 Issues = "https://github.com/rahimnathwani/mailbox-viewer/issues"
 

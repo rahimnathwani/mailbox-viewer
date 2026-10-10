@@ -7,7 +7,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 ### Changed
 
 - The live demo runs the documented setup: viewer on Vercel, data on Cloudflare R2 (it was on GitHub Pages). `make publish-demo` updates its data.
-- The publishing guide follows the current Cloudflare dashboard, including setting CORS by hand when the API token is limited to one bucket.
+- The publishing guide follows the current Cloudflare dashboard, including setting CORS by hand when the API token is limited to one bucket, and covers custom domains for the bucket and the viewer.
 
 ### Fixed
 

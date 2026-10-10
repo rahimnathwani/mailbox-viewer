@@ -23,7 +23,7 @@ graph TB
 ## 1. Cloudflare R2 (once)
 
 1. **Bucket**: Cloudflare dashboard → R2 Object Storage → Create bucket (e.g. `mailboxes`; defaults are fine).
-2. **Public access**: bucket → Settings → Public Development URL → Enable (type `allow`). That gives a rate-limited `https://pub-….r2.dev` URL, fine to start; for real traffic connect a **custom domain** under Custom Domains (the domain must be on Cloudflare).
+2. **Public access**: bucket → Settings → Public Development URL → Enable (type `allow`). That gives a rate-limited `https://pub-….r2.dev` URL, fine to start; for real traffic use a [custom domain](#custom-domains).
 3. **CORS**: bucket → Settings → CORS Policy → Add, and paste:
 
    ```json
@@ -82,8 +82,8 @@ mbv publish county-2026-05      # or: mbv publish --all
 
 1. Push your clone to GitHub.
 2. Vercel → Add New → Project → import it. Leave Root Directory at `./` and set **Application Preset** to **Other**: Vercel detects the viewer and the Python package as separate apps, but [`vercel.json`](../vercel.json) builds the viewer for you. Ignore the "possible configuration mismatch" note.
-3. Under Environment Variables add **`VITE_DATA_URL`** = the bucket's public URL.
-4. Deploy. `/` lists the mailboxes; each lives at `/<slug>` (for example https://mailbox-viewer.vercel.app/demo).
+3. Under Environment Variables add **`VITE_DATA_URL`** = the bucket's public URL, as type **Config**. It isn't secret (it ends up in the page), and Vercel won't let you edit a Secret variable whose name starts with `VITE_` later.
+4. Deploy. `/` lists the mailboxes; each lives at `/<slug>` (for example https://mail.ocaho.com/demo).
 
 `vercel.json` sends `X-Robots-Tag: noindex`; remove it if you want search engines to list the site.
 
@@ -107,6 +107,13 @@ Build-time settings:
 
 Any S3-compatible store works (AWS S3, Backblaze B2, Garage, SeaweedFS): set `S3_ENDPOINT_URL` in `.env`. It must allow CORS with the `Range` header, or be served from the same origin as the viewer. A plain web server that supports range requests can serve `dist/` directly; upload it with `rsync`.
 
-## Custom domain later
+## Custom domains
 
-Connect the domain to the bucket, change `R2_PUBLIC_URL` and `VITE_DATA_URL`, and redeploy the viewer. The data doesn't need uploading again.
+Both are free if the domain is already on Cloudflare. The demo uses `mail.ocaho.com` for the viewer and `mail-data.ocaho.com` for the data.
+
+| Piece | Where | Notes |
+|---|---|---|
+| **Data** | R2 → bucket → Settings → Custom Domains → Add | Cloudflare adds the DNS record. Its free certificate covers one level of subdomain, so use `mail-data.example.com`, not `data.mail.example.com` |
+| **Viewer** | Vercel → project → Settings → Domains → Add | Add the CNAME record Vercel shows; on Cloudflare set it to **DNS only** |
+
+Then set `R2_PUBLIC_URL` in `.env` and `VITE_DATA_URL` on Vercel to the data domain, and redeploy the viewer. The data doesn't need uploading again, and the bucket's CORS policy carries over.
