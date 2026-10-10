@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm ci --prefix viewer --ignore-scripts --no-audit --no-fund",
+  "buildCommand": "npm run build --prefix viewer",
+  "outputDirectory": "viewer/dist",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "headers": [
+    { "source": "/(.*)", "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] },
+    { "source": "/assets/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] }
+  ]
+}

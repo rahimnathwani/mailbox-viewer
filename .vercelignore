@@ -1,0 +1,8 @@
+# never upload mailbox data or local caches with `vercel deploy`
+input/
+dist/
+.cache/
+.venv/
+**/node_modules/
+viewer/dist/
+.env

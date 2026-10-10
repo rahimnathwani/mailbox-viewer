@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: viewer/package-lock.json
+      - run: npm ci --prefix viewer --ignore-scripts --no-audit --no-fund
+      - name: ruff, Biome, TypeScript
+        run: make lint
+      - name: docs/cli.md is up to date
+        run: make docs-check
+
+  test:
+    name: test (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: uv run --python ${{ matrix.python }} pytest -q
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: viewer/package-lock.json
+      - name: Build the viewer
+        working-directory: viewer
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build
+      - name: Playwright
+        working-directory: viewer
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e
+        env:
+          CI: "1"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: viewer/test-results/
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: make build
+      - name: Smoke-test the wheel outside the checkout
+        run: |
+          cd "$RUNNER_TEMP"
+          uvx --from "$GITHUB_WORKSPACE"/build/*.whl mbv --version
+          uvx --from "$GITHUB_WORKSPACE"/build/*.whl mbv build "$GITHUB_WORKSPACE/tests/fixtures/demo" --slug demo --no-embed
+          test -f dist/demo/manifest.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: build/

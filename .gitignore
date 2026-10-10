@@ -1,0 +1,33 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# mailbox data never goes into git
+input/*
+!input/.gitkeep
+/dist/
+.cache/
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+build/
+*.egg-info/
+
+# node
+node_modules/
+viewer/dist/
+viewer/.e2e-dist/
+viewer/test-results/
+viewer/playwright-report/
+viewer/.*.mjs
+
+# wheels bundle the built viewer here
+src/mailbox_viewer/viewer/
+
+# os
+.DS_Store

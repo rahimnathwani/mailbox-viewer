@@ -1,0 +1,36 @@
+{
+  "tokenizer": {
+    "version": 2,
+    "max_token_length": 40,
+    "stopwords": [
+      "a", "about", "above", "after", "again", "all", "am", "an", "and", "any", "are", "as", "at",
+      "be", "because", "been", "before", "being", "below", "between", "both", "but", "by",
+      "can", "could", "did", "do", "does", "doing", "down", "during", "each", "few", "for", "from", "further",
+      "had", "has", "have", "having", "he", "her", "here", "hers", "herself", "him", "himself", "his", "how",
+      "i", "if", "in", "into", "is", "it", "its", "itself", "just", "me", "more", "most", "my", "myself",
+      "no", "nor", "not", "now", "of", "off", "on", "once", "only", "or", "other", "our", "ours", "ourselves",
+      "out", "over", "own", "same", "she", "should", "so", "some", "such",
+      "than", "that", "the", "their", "theirs", "them", "themselves", "then", "there", "these", "they",
+      "this", "those", "through", "to", "too", "under", "until", "up", "very",
+      "was", "we", "were", "what", "when", "where", "which", "while", "who", "whom", "why", "will", "with", "would",
+      "you", "your", "yours", "yourself", "yourselves"
+    ]
+  },
+  "bm25": {
+    "k1": 1.2,
+    "b": 0.75,
+    "weights": { "subject": 3, "people": 1, "body": 1, "attachment_name": 2, "attachment_text": 1 }
+  },
+  "embedding": {
+    "model": "Snowflake/snowflake-arctic-embed-xs",
+    "dtype": "q8",
+    "pooling": "cls",
+    "query_prefix": "Represent this sentence for searching relevant passages: ",
+    "dims": 384,
+    "min_score": 0.5,
+    "chunk_words": 180,
+    "overlap_words": 40,
+    "max_body_chunks": 12,
+    "max_attachment_chunks": 24
+  }
+}

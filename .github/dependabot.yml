@@ -1,0 +1,17 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }
+    groups: { actions: { patterns: ["*"] } }
+  - package-ecosystem: uv
+    directory: /
+    schedule: { interval: monthly }
+    groups: { python: { patterns: ["*"] } }
+  - package-ecosystem: npm
+    directory: /viewer
+    schedule: { interval: monthly }
+    groups: { viewer: { patterns: ["*"] } }
+  - package-ecosystem: npm
+    directory: /src/mailbox_viewer/embed
+    schedule: { interval: monthly }

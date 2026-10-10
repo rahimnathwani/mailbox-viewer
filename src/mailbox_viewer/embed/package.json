@@ -1,0 +1,9 @@
+{
+  "name": "mailbox-viewer-embed",
+  "private": true,
+  "type": "module",
+  "description": "Build-time document embeddings with the same transformers.js model the viewer uses for queries",
+  "dependencies": {
+    "@huggingface/transformers": "4.3.0"
+  }
+}
