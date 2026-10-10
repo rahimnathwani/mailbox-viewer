@@ -280,8 +280,8 @@ export function ThreadView({
   const [kbd, setKbd] = useState(false);
   const slug = ds.slug;
   const highlight = useMemo(() => highlightRegex(highlightWords), [highlightWords]);
-  const matchRef = useRef(matchDocs);
-  matchRef.current = matchDocs;
+  // search matches already opened, so collapsing one isn't undone when the search re-runs
+  const opened = useRef(new Set<number>());
 
   useEffect(() => {
     let live = true;
@@ -290,16 +290,13 @@ export function ThreadView({
     setError("");
     setShowMiddle(false);
     setFocus(-1);
+    opened.current = new Set();
     ds.messages(thread.thread_id)
       .then((ms) => {
         if (!live) return;
         setMsgs(ms);
-        // Gmail: the latest message (and search matches) open, older ones collapsed
-        const o = new Set<number>([ms.length - 1]);
-        ms.forEach((m, i) => {
-          if (matchRef.current.has(m.doc)) o.add(i);
-        });
-        setOpen(o);
+        // Gmail: the latest message open, older ones collapsed (search matches open below)
+        setOpen(new Set([ms.length - 1]));
         setFocus(ms.length - 1);
       })
       .catch((e) => live && setError(String(e)));
@@ -311,6 +308,16 @@ export function ThreadView({
       live = false;
     };
   }, [ds, thread, slug]);
+
+  // Open search matches. They can arrive after the messages: reloading a search result's URL
+  // opens the conversation straight away and runs the search again in the background.
+  useEffect(() => {
+    if (!msgs) return;
+    const add = msgs.flatMap((m, i) => (matchDocs.has(m.doc) && !opened.current.has(m.doc) ? [i] : []));
+    if (!add.length) return;
+    for (const i of add) opened.current.add(msgs[i].doc);
+    setOpen((o) => new Set([...o, ...add]));
+  }, [msgs, matchDocs]);
 
   useEffect(() => {
     const on = (e: KeyboardEvent) => {

@@ -31,6 +31,18 @@ test("opening a conversation shows messages, marks it read, and u goes back", as
   await expect(page.locator(".nav-item.active .nav-count")).toHaveText("10");
 });
 
+test("a search match is expanded, also after reloading the conversation's URL", async ({ page }) => {
+  await search(page, "arborist"); // only the middle of three messages matches
+  await page.locator(".row .row-subject").first().click();
+  const match = page.locator(".msg").nth(1);
+  await expect(match).toHaveClass(/expanded/);
+  // a reload opens the conversation before the search has run again
+  await page.reload();
+  await expect(page.locator(".thread-subject h1")).toHaveText("Tree removal request on Elm St");
+  await expect(match).toHaveClass(/expanded/);
+  await expect(page.locator(".msg.expanded")).toHaveCount(2); // the match and the latest
+});
+
 test("keyboard: j moves the cursor, o opens, k/j step between conversations", async ({ page }) => {
   await page.goto("/demo");
   await expect(rows(page)).toHaveCount(11);

@@ -14,6 +14,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - `mbv check` and `mbv setup` reported public `r2.dev` URLs as broken: Cloudflare rejects Python's default user agent.
 - When the token can't set CORS, `mbv publish` and `mbv setup` print the policy to paste instead of a bare error (`publish` only if the public check finds it missing).
 - `mbv publish` and `mbv check` check every mailbox named, not just the first.
+- Reloading a search result's URL expanded only the latest message of the conversation instead of the ones that matched.
 
 ## [0.1.0] - 2026-10-09
 
