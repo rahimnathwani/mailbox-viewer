@@ -15,21 +15,21 @@
   "dependencies": {
     "@duckdb/duckdb-wasm": "1.33.1-dev57.0",
     "@fontsource/roboto": "5.3.0",
-    "@huggingface/transformers": "4.3.0",
+    "@huggingface/transformers": "4.3.1",
     "@material-symbols/svg-400": "0.47.6",
     "dompurify": "3.4.16",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.13",
+    "@biomejs/biome": "2.5.15",
     "@playwright/test": "1.64.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "6.1.2",
     "sirv": "3.0.2",
-    "typescript": "5.9.3",
-    "vite": "8.3.2"
+    "typescript": "7.0.2",
+    "vite": "8.3.3"
   },
   "description": "Static Gmail-style viewer for mailboxes built with mailbox-viewer",
   "license": "MIT"
